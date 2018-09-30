@@ -3,7 +3,7 @@
 const assert = require('assert');
 const entityChangelog = require('../generators/import-jdl/entity-changelog');
 
-describe.only('JHipster entity changelogs', () => {
+describe('JHipster entity changelogs', () => {
     describe('isEnumType', () => {
         const tests = [
             { fieldType: 'String', expected: false },

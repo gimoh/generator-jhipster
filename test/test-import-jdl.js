@@ -86,6 +86,7 @@ describe('JHipster generator import jdl', () => {
         });
 
         it('creates a liquibase changelog file', () => {
+            // shelljs.find('.').forEach((fn) => { console.log(fn); });
             const changelogs = shelljs.ls(
                 'src/main/resources/config/liquibase/changelog/*_changelog.xml');
             assert.notEqual(changelogs.length, 0);

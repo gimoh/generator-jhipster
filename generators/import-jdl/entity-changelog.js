@@ -117,8 +117,9 @@ function isNullable(field) {
 }
 
 /**
- * Turn a JSON patch (http://jsonpatch.com/) into liquibase changeset data
- * (i.e. object containing data needed to render a liquibase changelog xml)
+ * Turn a JSON patch (http://jsonpatch.com/) describing changes to a
+ * single entity into liquibase changeset data (i.e. object containing
+ * data needed to render a liquibase changelog xml)
  *
  * @param {Object} ctx - context object containing entity definitions before
  * and after the change, and the diff

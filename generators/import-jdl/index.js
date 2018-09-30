@@ -16,10 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const path = require('path');
 const util = require('util');
 const shelljs = require('shelljs');
 const generator = require('yeoman-generator');
 const chalk = require('chalk');
+const jsonpatch = require('fast-json-patch');
 const jhiCore = require('jhipster-core');
 const BaseGenerator = require('../generator-base');
 
@@ -62,6 +64,12 @@ module.exports = JDLGenerator.extend({
                     this.clientPackageManager = 'npm';
                 }
             }
+        },
+
+        snapshotEntities() {
+            this.entitiesBefore = this._getEntitiesObj();
+            this.fs.writeJSON('entitiesBefore.json', this.entitiesBefore);
+            console.log(`${chalk.yellow('entitiesBefore')}: ${JSON.stringify(this.entitiesBefore, null, 2)}`);
         }
     },
 
@@ -105,6 +113,16 @@ module.exports = JDLGenerator.extend({
             } catch (e) {
                 this.error(`Error while generating entities from parsed JDL\n${e}`);
             }
+        },
+
+        generateLiquibaseChangelog() {
+            const entitiesAfter = this._getEntitiesObj();
+            const entitiesDiff = jsonpatch.compare(
+                this.entitiesBefore, entitiesAfter);
+            this.fs.writeJSON('entitiesAfter.json', entitiesAfter);
+            this.fs.writeJSON('entitiesDiff.json', entitiesDiff);
+            console.log(`${chalk.yellow('entitiesAfter')}: ${JSON.stringify(entitiesAfter, null, 2)}`);
+            console.log(`${chalk.yellow('entitiesDiff')}: ${JSON.stringify(entitiesDiff, null, 2)}`);
         }
     },
 
@@ -126,5 +144,29 @@ module.exports = JDLGenerator.extend({
                 rebuildClient();
             }
         }
+    },
+
+    /**
+     * Get entities as object (name: definition)
+     *
+     * Based on `getExistingEntities`, but not using it as that one uses mem-fs
+     * so it may not be up-to-date (as entities as modified directly on-disk
+     * above in `generateEntities`).
+     */
+    _getEntitiesObj() {
+        if (!shelljs.test('-d', '.jhipster')) return {};
+        return shelljs.ls('.jhipster/*.json').reduce((acc, file) => {
+            const entity = path.basename(file, '.json');
+            try {
+                acc[entity] = jhiCore.readEntityJSON(file);
+            } catch (error) {
+                // not an entity file / malformed?
+            }
+            return acc;
+        }, {});
+        // return this.getExistingEntities().reduce((acc, it) => {
+        //     acc[it.name] = it.definition;
+        //     return acc;
+        // }, {});
     }
 });
